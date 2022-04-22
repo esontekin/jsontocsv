@@ -1,2 +1,5 @@
-package com.esontekin.jsontocsv;public class CSVModel {
+package com.esontekin.jsontocsv;
+
+public class CSVModel {
+
 }
