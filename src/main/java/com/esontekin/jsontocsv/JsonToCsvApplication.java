@@ -9,14 +9,15 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,6 +33,7 @@ public class JsonToCsvApplication {
     @Bean
     public CommandLineRunner run() throws Exception {
         return args -> {
+            DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
             LOGGER.info("Starting file discovery!");
             System.out.print("Enter the file path : ");
             Scanner scanner = new Scanner(System.in);
@@ -53,7 +55,56 @@ public class JsonToCsvApplication {
             for (String s : filesPath) {
                 System.out.println(ConsoleColors.YELLOW + s + " opened" + ConsoleColors.RESET +" \uD83D\uDE00");
                 Map<String, Object> result = new ObjectMapper().readValue(new File(s), HashMap.class);
+                if (!result.containsKey("intId") || !result.containsKey("extId") || !result.containsKey("name"))
+                    continue;
+                String fileName =
+                        result.get("intId").toString() + "-" +
+                        result.get("extId").toString() + "-" +
+                        result.get("name").toString() + ".csv";
+                List<Object> users = Collections.singletonList(result.get("users"));
+                BufferedWriter writer = new BufferedWriter(new FileWriter(output + "/" + fileName));
+                writer.write("Toplantı_ID | Ders_Adı | Dönem_Hafta | Ad_Soyad | Öğretim_Elemanı_mı | Cevaplar " +
+                        "| Toplam_Konuşma_Süresi | En_Son_Konuşmanın_Başladığı_Zaman | Kameranın_Açıldığı_Zaman | Kameranın_Durduğu_Zaman | Toplam_Mesaj_Sayısı");
+                writer.newLine();
+                for(Object user : users) {
+                    Map<String, Object> userMap = (Map<String, Object>) user;
+                    for (Object value : userMap.values()) {
+                        Map<String, Object> userValueMap = (Map<String, Object>)value;
+                        writer.write(result.get("intId").toString() + "|");
+                        writer.write(result.get("extId").toString() + "|");
+                        writer.write(result.get("name").toString() + "|");
+                        writer.write(userValueMap.get("name").toString() + "|");
+                        writer.write(userValueMap.get("isModerator").toString() + "|");
+                        writer.write(userValueMap.containsKey("answers") ? userValueMap.get("answers").toString() : "");
+                        writer.write( "|");
+                        Map<String, Object> talkMap = (Map<String, Object>)userValueMap.get("talk");
+                        writer.write(talkMap.get("totalTime").toString());
+                        writer.write( "|");
+                        writer.write(talkMap.get("lastTalkStartedOn").toString());
+                        writer.write( "|");
+                        String webcamStart = "";
+                        String webcamStop = "";
+                        ArrayList webcamsList = (ArrayList) userValueMap.get("webcams");
+                        for (Object webcamLinkList : webcamsList) {
+                            Map<String, Object> webcamsMap = (Map<String, Object>) webcamLinkList;
+                            long epoch = Long.parseLong( webcamsMap.get("startedOn").toString() );
+                            Date expiry = new Date( epoch  );
+                            webcamStart += formatter.format(expiry) + " , ";
+                            epoch = Long.parseLong( webcamsMap.get("stoppedOn").toString() );
+                            expiry = new Date( epoch );
+                            webcamStop += formatter.format(expiry) + " , ";
 
+                        }
+
+                        writer.write(webcamStart);
+                        writer.write( "|");
+                        writer.write(webcamStop);
+                        writer.write( "|");
+                        writer.write(userValueMap.containsKey("totalOfMessages") ? userValueMap.get("totalOfMessages").toString() : "");
+                        writer.newLine();
+                    }
+                }
+                writer.close();
                 System.out.println(ConsoleColors.GREEN + s + " done!" + ConsoleColors.RESET + " \uD83D\uDE0E");
             }
 
