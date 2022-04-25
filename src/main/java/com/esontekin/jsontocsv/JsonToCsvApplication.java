@@ -33,7 +33,7 @@ public class JsonToCsvApplication {
     @Bean
     public CommandLineRunner run() throws Exception {
         return args -> {
-            DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+            DateFormat formatter = new SimpleDateFormat("HH:mm:ss dd/MM/yyyy");
             LOGGER.info("Starting file discovery!");
             System.out.print("Enter the file path : ");
             Scanner scanner = new Scanner(System.in);
