@@ -21,6 +21,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.System.out;
+
 @SpringBootApplication
 public class JsonToCsvApplication {
 
@@ -35,15 +37,22 @@ public class JsonToCsvApplication {
         return args -> {
             DateFormat formatter = new SimpleDateFormat("HH:mm:ss dd/MM/yyyy");
             LOGGER.info("Starting file discovery!");
-            System.out.print("Enter the file path : ");
+            out.print("Enter the file path : ");
             Scanner scanner = new Scanner(System.in);
-            String line = scanner.nextLine();
+            String line = scanner.nextLine().trim();
             Path path = Paths.get(line);
-            System.out.print("Enter output directory : ");
-            String output = scanner.nextLine();
+            out.print("Enter output directory : ");
+            String output = scanner.nextLine().trim();
             if (!Files.isDirectory(path)) {
                 throw new IllegalArgumentException("Path must be a directory");
             }
+            out.println(ConsoleColors.BLUE + "Checking output directory " + ConsoleColors.RESET);
+            Path outputPath = Paths.get(output);
+            if(Files.notExists(outputPath)){
+                Files.createDirectory(outputPath);
+                out.println(ConsoleColors.GREEN + "Directory created! " + ConsoleColors.RESET + "\u2728");
+            }
+            out.println(ConsoleColors.GREEN + "Directory ok! " + ConsoleColors.RESET + "\uD83D\uDC7D" );
             List<String> filesPath = Lists.newArrayList();
             try (Stream<Path> walk = Files.walk(path)){
                 filesPath = walk
@@ -53,7 +62,7 @@ public class JsonToCsvApplication {
                         .collect(Collectors.toList());
             }
             for (String s : filesPath) {
-                System.out.println(ConsoleColors.YELLOW + s + " opened" + ConsoleColors.RESET +" \uD83D\uDE00");
+                out.println(ConsoleColors.YELLOW + s + " opened" + ConsoleColors.RESET +" \uD83D\uDE00");
                 Map<String, Object> result = new ObjectMapper().readValue(new File(s), HashMap.class);
                 if (!result.containsKey("intId") || !result.containsKey("extId") || !result.containsKey("name"))
                     continue;
@@ -105,7 +114,7 @@ public class JsonToCsvApplication {
                     }
                 }
                 writer.close();
-                System.out.println(ConsoleColors.GREEN + s + " done!" + ConsoleColors.RESET + " \uD83D\uDE0E");
+                out.println(ConsoleColors.GREEN + s + " done!" + ConsoleColors.RESET + " \uD83D\uDE0E");
             }
 
         };
