@@ -50,9 +50,9 @@ public class JsonToCsvApplication {
             Path outputPath = Paths.get(output);
             if(Files.notExists(outputPath)){
                 Files.createDirectory(outputPath);
-                out.println(ConsoleColors.GREEN + "Directory created! " + ConsoleColors.RESET + "\u2728");
+                out.println(ConsoleColors.GREEN + "Output directory created! " + ConsoleColors.RESET + "\u2728");
             }
-            out.println(ConsoleColors.GREEN + "Directory ok! " + ConsoleColors.RESET + "\uD83D\uDC7D" );
+            out.println(ConsoleColors.GREEN + "Output directory ok! " + ConsoleColors.RESET + "\uD83D\uDC7D" );
             List<String> filesPath = Lists.newArrayList();
             try (Stream<Path> walk = Files.walk(path)){
                 filesPath = walk
@@ -89,7 +89,14 @@ public class JsonToCsvApplication {
                         Map<String, Object> talkMap = (Map<String, Object>)userValueMap.get("talk");
                         writer.write(talkMap.get("totalTime").toString());
                         writer.write( "|");
-                        writer.write(talkMap.get("lastTalkStartedOn").toString());
+                        String lastTalkStartedOnString = "";
+                        Date expirylastTalkStartedOn = null;
+                        if (!"0".equals(talkMap.get("lastTalkStartedOn").toString())) {
+                            long epochlastTalkStartedOn = Long.parseLong(talkMap.get("lastTalkStartedOn").toString());
+                            expirylastTalkStartedOn = new Date( epochlastTalkStartedOn  );
+                            lastTalkStartedOnString = formatter.format(expirylastTalkStartedOn);
+                        }
+                        writer.write(lastTalkStartedOnString);
                         writer.write( "|");
                         String webcamStart = "";
                         String webcamStop = "";
