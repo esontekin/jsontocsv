@@ -2,6 +2,8 @@ package com.esontekin.jsontocsv;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.vdurmont.emoji.Emoji;
+import com.vdurmont.emoji.EmojiParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -33,11 +35,11 @@ public class JsonToCsvApplication {
     }
 
     @Bean
-    public CommandLineRunner run() throws Exception {
+    public CommandLineRunner run() {
         return args -> {
             DateFormat formatter = new SimpleDateFormat("HH:mm:ss dd/MM/yyyy");
-            LOGGER.info("Starting file discovery!");
-            out.print("Enter the file path : ");
+            LOGGER.info(EmojiParser.parseToUnicode( ":rocket: Starting file discovery!"));
+            out.print(EmojiParser.parseToUnicode(":steam_locomotive: Enter the file path : "));
             Scanner scanner = new Scanner(System.in);
             String line = scanner.nextLine().trim();
             Path path = Paths.get(line);
@@ -53,11 +55,11 @@ public class JsonToCsvApplication {
                 out.println(ConsoleColors.GREEN + "Output directory created! " + ConsoleColors.RESET + "\u2728");
             }
             out.println(ConsoleColors.GREEN + "Output directory ok! " + ConsoleColors.RESET + "\uD83D\uDC7D" );
-            List<String> filesPath = Lists.newArrayList();
+            List<String> filesPath;
             try (Stream<Path> walk = Files.walk(path)){
                 filesPath = walk
                         .filter(p -> !Files.isDirectory(p))
-                        .map(p -> p.toString())
+                        .map(Path::toString)
                         .filter(f -> f.endsWith("json"))
                         .collect(Collectors.toList());
             }
@@ -90,7 +92,7 @@ public class JsonToCsvApplication {
                         writer.write(talkMap.get("totalTime").toString());
                         writer.write( "|");
                         String lastTalkStartedOnString = "";
-                        Date expirylastTalkStartedOn = null;
+                        Date expirylastTalkStartedOn;
                         if (!"0".equals(talkMap.get("lastTalkStartedOn").toString())) {
                             long epochlastTalkStartedOn = Long.parseLong(talkMap.get("lastTalkStartedOn").toString());
                             expirylastTalkStartedOn = new Date( epochlastTalkStartedOn  );
